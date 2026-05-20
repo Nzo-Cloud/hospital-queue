@@ -12,8 +12,6 @@ var builder = WebApplication.CreateBuilder(args);
 // ─── Services ────────────────────────────────────────────────────────────────
 
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 // SignalR
 builder.Services.AddSignalR();
@@ -102,12 +100,16 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 // builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Sentry (error tracking)
-builder.WebHost.UseSentry(o =>
+var sentryDsn = builder.Configuration["Sentry:Dsn"] ?? "";
+if (!string.IsNullOrWhiteSpace(sentryDsn) && sentryDsn.StartsWith("https://"))
 {
-    o.Dsn = builder.Configuration["Sentry:Dsn"] ?? "";
-    o.TracesSampleRate = 1.0;
-    o.Debug = builder.Environment.IsDevelopment();
-});
+    builder.WebHost.UseSentry(o =>
+    {
+        o.Dsn = sentryDsn;
+        o.TracesSampleRate = 1.0;
+        o.Debug = builder.Environment.IsDevelopment();
+    });
+}
 
 // ─── Build ───────────────────────────────────────────────────────────────────
 
@@ -117,12 +119,6 @@ var app = builder.Build();
 
 // Global exception handler — must be first
 app.UseMiddleware<ExceptionMiddleware>();
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 
 // HTTP Security Headers
 app.Use(async (context, next) =>
