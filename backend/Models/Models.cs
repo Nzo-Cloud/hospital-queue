@@ -17,6 +17,7 @@ public record LoginRequest(
 
 public record AuthResult(
     string AccessToken,
+    string RefreshToken,
     string Role,
     string UserId,
     string FullName

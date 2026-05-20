@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Threading.RateLimiting;
+using HospitalQueue.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -92,7 +93,10 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 
-// App Services (stubs — implemented in Phase 1+)
+// Data
+builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
+
+// App Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 // builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 // builder.Services.AddScoped<IQueueService, QueueService>();

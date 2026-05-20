@@ -12,7 +12,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Extends Supabase Auth users. Created automatically on user registration.
 
 CREATE TABLE IF NOT EXISTS profiles (
-    id          UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     role        TEXT NOT NULL CHECK (role IN ('patient', 'receptionist', 'doctor', 'admin')),
     full_name   TEXT NOT NULL,
     phone       TEXT NOT NULL,

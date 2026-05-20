@@ -22,18 +22,29 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        // TODO: Phase 1 — validate, call service, set HttpOnly cookie
         var result = await _authService.RegisterAsync(request);
-        SetRefreshTokenCookie(result.AccessToken); // placeholder
-        return Ok(ApiResponse.Ok(result));
+        SetRefreshTokenCookie(result.RefreshToken);
+        return Ok(ApiResponse.Ok(new
+        {
+            result.AccessToken,
+            result.Role,
+            result.UserId,
+            result.FullName
+        }));
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        // TODO: Phase 1 — validate, call service, set HttpOnly cookie
         var result = await _authService.LoginAsync(request);
-        return Ok(ApiResponse.Ok(result));
+        SetRefreshTokenCookie(result.RefreshToken);
+        return Ok(ApiResponse.Ok(new
+        {
+            result.AccessToken,
+            result.Role,
+            result.UserId,
+            result.FullName
+        }));
     }
 
     [HttpPost("refresh")]
@@ -44,7 +55,14 @@ public class AuthController : ControllerBase
             return Unauthorized(ApiResponse.Fail("No refresh token."));
 
         var result = await _authService.RefreshTokenAsync(refreshToken);
-        return Ok(ApiResponse.Ok(result));
+        SetRefreshTokenCookie(result.RefreshToken);
+        return Ok(ApiResponse.Ok(new
+        {
+            result.AccessToken,
+            result.Role,
+            result.UserId,
+            result.FullName
+        }));
     }
 
     [HttpPost("logout")]
@@ -62,13 +80,15 @@ public class AuthController : ControllerBase
 
     private void SetRefreshTokenCookie(string token)
     {
+        var expiryDays = _config.GetValue<int>("Jwt:RefreshTokenExpiryDays", 7);
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
+            Secure = !HttpContext.RequestServices
+                .GetRequiredService<IHostEnvironment>()
+                .IsDevelopment(), // false in dev so HTTP works locally
             SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddDays(
-                _config.GetValue<int>("Jwt:RefreshTokenExpiryDays", 7))
+            Expires = DateTime.UtcNow.AddDays(expiryDays)
         };
         Response.Cookies.Append("refreshToken", token, cookieOptions);
     }
