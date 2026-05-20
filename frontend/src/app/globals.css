@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* ── Brand ── */
+  --accent: #E8572A;         /* Vermillion */
+  --accent-hover: #cf4a1f;
+  --accent-muted: #E8572A22;
+
+  /* ── Neutral Dark ── */
+  --bg-base: #0C0C0E;
+  --bg-surface: #141416;
+  --bg-elevated: #1C1C1F;
+  --bg-border: #2A2A2E;
+
+  /* ── Text ── */
+  --text-primary: #F0F0F2;
+  --text-secondary: #8A8A96;
+  --text-muted: #4A4A55;
+
+  /* ── Status ── */
+  --status-success: #22C55E;
+  --status-warning: #F59E0B;
+  --status-error: #EF4444;
+  --status-info: #3B82F6;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: system-ui, sans-serif; /* Replaced per-component with actual font */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}

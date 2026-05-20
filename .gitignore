@@ -1,0 +1,31 @@
+# ========================
+# .NET / ASP.NET Core
+# ========================
+backend/bin/
+backend/obj/
+backend/*.user
+backend/.vs/
+backend/appsettings.Development.json
+backend/.env
+
+# ========================
+# Next.js / Node
+# ========================
+frontend/.next/
+frontend/node_modules/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# ========================
+# General
+# ========================
+.DS_Store
+Thumbs.db
+*.log
+*.suo
+*.swp
+.idea/
+.vscode/settings.json
