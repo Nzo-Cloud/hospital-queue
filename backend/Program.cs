@@ -99,7 +99,7 @@ builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 // App Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
-// builder.Services.AddScoped<IQueueService, QueueService>();
+builder.Services.AddScoped<IQueueService, QueueService>();
 // builder.Services.AddScoped<ITwilioService, TwilioService>();
 // builder.Services.AddScoped<INotificationService, NotificationService>();
 

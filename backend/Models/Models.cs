@@ -98,12 +98,10 @@ public class QueueEntry
     public Guid AppointmentId { get; set; }
     public Guid DoctorId { get; set; }
     public int QueuePosition { get; set; }
-    public string Status { get; set; } = QueueStatus.Waiting;
+    public string Status { get; set; } = string.Empty;
     public DateTime? CheckedInAt { get; set; }
     public DateTime? CalledAt { get; set; }
     public DateTime? CompletedAt { get; set; }
-
-    // Navigation (populated via join)
     public string? PatientName { get; set; }
     public string? PatientPhone { get; set; }
 }

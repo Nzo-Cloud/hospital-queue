@@ -100,10 +100,65 @@ public class AppointmentController : ControllerBase
 [EnableRateLimiting("GlobalPolicy")]
 public class QueueController : ControllerBase
 {
-    // TODO: Phase 2 — QueueService
-    [HttpGet("doctor/{doctorId}")] public IActionResult GetQueue(Guid doctorId) => Ok("Phase 2");
-    [HttpPost("check-in")] public IActionResult CheckIn() => Ok("Phase 2");
-    [HttpPost("{id}/advance")] public IActionResult Advance(Guid id) => Ok("Phase 2");
+    private readonly IQueueService _queueService;
+
+    public QueueController(IQueueService queueService)
+    {
+        _queueService = queueService;
+    }
+
+    // GET /api/queue/doctor/{doctorId}
+    [HttpGet("doctor/{doctorId}")]
+    public async Task<IActionResult> GetQueue(Guid doctorId)
+    {
+        var queue = await _queueService.GetDoctorQueueAsync(doctorId);
+        return Ok(ApiResponse.Ok(queue));
+    }
+
+    // POST /api/queue/check-in
+    [HttpPost("check-in")]
+    [Authorize(Roles = "receptionist,admin")]
+    public async Task<IActionResult> CheckIn([FromBody] CheckInRequest request)
+    {
+        var receptionistId = GetUserId();
+        var entry = await _queueService.CheckInAsync(request.AppointmentId, receptionistId);
+        return Ok(ApiResponse.Ok(entry));
+    }
+
+    // POST /api/queue/advance
+    [HttpPost("advance")]
+    [Authorize(Roles = "doctor")]
+    public async Task<IActionResult> Advance([FromBody] AdvanceQueueRequest request)
+    {
+        var doctorId = GetUserId();
+        var entry = await _queueService.AdvanceQueueAsync(request.DoctorId, doctorId);
+        return Ok(ApiResponse.Ok(entry));
+    }
+
+    // POST /api/queue/{id}/complete
+    [HttpPost("{id}/complete")]
+    [Authorize(Roles = "doctor")]
+    public async Task<IActionResult> Complete(Guid id)
+    {
+        var doctorId = GetUserId();
+        var entry = await _queueService.CompleteConsultationAsync(id, doctorId);
+        return Ok(ApiResponse.Ok(entry));
+    }
+
+    // GET /api/queue/position/{appointmentId}
+    [HttpGet("position/{appointmentId}")]
+    public async Task<IActionResult> GetPosition(Guid appointmentId)
+    {
+        var position = await _queueService.GetPatientPositionAsync(appointmentId);
+        return Ok(ApiResponse.Ok(new { position }));
+    }
+
+    private Guid GetUserId()
+    {
+        var sub = User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new UnauthorizedAccessException("User ID not found in token.");
+        return Guid.Parse(sub);
+    }
 }
 
 // ─── Doctor Controller ────────────────────────────────────────────────────────

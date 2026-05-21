@@ -9,3 +9,6 @@ public record CreateAppointmentRequest(
 public record UpdateAppointmentStatusRequest(
     string Status
 );
+
+public record CheckInRequest(Guid AppointmentId);
+public record AdvanceQueueRequest(Guid DoctorId);
