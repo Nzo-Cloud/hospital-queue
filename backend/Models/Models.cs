@@ -54,7 +54,7 @@ public class TimeSlot
 {
     public Guid Id { get; set; }
     public Guid DoctorId { get; set; }
-    public int DayOfWeek { get; set; } // 0=Sun, 1=Mon, ..., 6=Sat
+    public int DayOfWeek { get; set; }
     public TimeOnly StartTime { get; set; }
     public TimeOnly EndTime { get; set; }
     public int MaxAppointments { get; set; }
@@ -68,7 +68,7 @@ public class Appointment
     public Guid PatientId { get; set; }
     public Guid DoctorId { get; set; }
     public Guid SlotId { get; set; }
-    public DateOnly AppointmentDate { get; set; }
+    public DateTime AppointmentDate { get; set; }
     public string Status { get; set; } = AppointmentStatus.Scheduled;
     public string? Notes { get; set; }
     public DateTime CreatedAt { get; set; }

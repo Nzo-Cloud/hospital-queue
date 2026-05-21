@@ -1,6 +1,9 @@
+using HospitalQueue.Models;
+using HospitalQueue.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using System.Security.Claims;
 
 namespace HospitalQueue.Controllers;
 
@@ -12,11 +15,81 @@ namespace HospitalQueue.Controllers;
 [EnableRateLimiting("GlobalPolicy")]
 public class AppointmentController : ControllerBase
 {
-    // TODO: Phase 2
-    [HttpGet] public IActionResult GetAll() => Ok("Phase 2");
-    [HttpPost] public IActionResult Create() => Ok("Phase 2");
-    [HttpPut("{id}")] public IActionResult Update(Guid id) => Ok("Phase 2");
-    [HttpDelete("{id}")] public IActionResult Cancel(Guid id) => Ok("Phase 2");
+    private readonly IAppointmentService _appointmentService;
+
+    public AppointmentController(IAppointmentService appointmentService)
+    {
+        _appointmentService = appointmentService;
+    }
+
+    // GET /api/appointment — patients see their own, receptionists/doctors see today's
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var userId = GetUserId();
+        var role = GetRole();
+
+        if (role == "patient")
+        {
+            var appointments = await _appointmentService.GetPatientAppointmentsAsync(userId);
+            return Ok(ApiResponse.Ok(appointments));
+        }
+
+        // Receptionist and admin see all of today's appointments
+        var todayAppointments = await _appointmentService.GetAllTodayAsync(DateTime.UtcNow);
+        return Ok(ApiResponse.Ok(todayAppointments));
+    }
+
+    // GET /api/appointment/{id}
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var appointment = await _appointmentService.GetByIdAsync(id);
+        return Ok(ApiResponse.Ok(appointment));
+    }
+
+    // GET /api/appointment/slots?doctorId=...&date=...
+    [HttpGet("slots")]
+    public async Task<IActionResult> GetSlots([FromQuery] Guid doctorId, [FromQuery] DateTime date)
+    {
+        var slots = await _appointmentService.GetAvailableSlotsAsync(doctorId, date);
+        return Ok(ApiResponse.Ok(slots));
+    }
+
+    // POST /api/appointment — patients book appointments
+    [HttpPost]
+    [Authorize(Roles = "patient")]
+    public async Task<IActionResult> Create([FromBody] CreateAppointmentRequest request)
+    {
+        var patientId = GetUserId();
+        var appointment = await _appointmentService.CreateAsync(request, patientId);
+        return Created($"/api/appointment/{appointment.Id}", ApiResponse.Ok(appointment));
+    }
+
+    // PUT /api/appointment/{id}/status
+    [HttpPut("{id}/status")]
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateAppointmentStatusRequest request)
+    {
+        var userId = GetUserId();
+        var role = GetRole();
+        var appointment = await _appointmentService.UpdateStatusAsync(id, request.Status, userId, role);
+        return Ok(ApiResponse.Ok(appointment));
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────────────────
+
+    private Guid GetUserId()
+    {
+        var sub = User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new UnauthorizedAccessException("User ID not found in token.");
+        return Guid.Parse(sub);
+    }
+
+    private string GetRole()
+    {
+        return User.FindFirstValue(ClaimTypes.Role)
+            ?? throw new UnauthorizedAccessException("Role not found in token.");
+    }
 }
 
 // ─── Queue Controller ─────────────────────────────────────────────────────────
@@ -27,7 +100,7 @@ public class AppointmentController : ControllerBase
 [EnableRateLimiting("GlobalPolicy")]
 public class QueueController : ControllerBase
 {
-    // TODO: Phase 2
+    // TODO: Phase 2 — QueueService
     [HttpGet("doctor/{doctorId}")] public IActionResult GetQueue(Guid doctorId) => Ok("Phase 2");
     [HttpPost("check-in")] public IActionResult CheckIn() => Ok("Phase 2");
     [HttpPost("{id}/advance")] public IActionResult Advance(Guid id) => Ok("Phase 2");
