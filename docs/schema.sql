@@ -56,7 +56,8 @@ CREATE TABLE IF NOT EXISTS appointments (
                         )),
     notes               TEXT,
     created_at          TIMESTAMPTZ DEFAULT now(),
-    updated_at          TIMESTAMPTZ DEFAULT now()
+    updated_at          TIMESTAMPTZ DEFAULT now(),
+    reminder_sent       BOOLEAN DEFAULT false
 );
 
 -- Auto-update updated_at

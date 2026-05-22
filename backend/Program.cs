@@ -100,7 +100,7 @@ builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IQueueService, QueueService>();
-// builder.Services.AddScoped<ITwilioService, TwilioService>();
+builder.Services.AddScoped<ITwilioService, TwilioService>();
 // builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Sentry (error tracking)
