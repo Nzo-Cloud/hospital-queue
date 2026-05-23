@@ -85,7 +85,11 @@ CREATE TABLE IF NOT EXISTS queue_entries (
     checked_in_at       TIMESTAMPTZ,
     called_at           TIMESTAMPTZ,
     completed_at        TIMESTAMPTZ,
-    UNIQUE (doctor_id, queue_position)
+    -- Partial unique index created separately (see below)
+    -- Only enforce position uniqueness for active (non-completed) queue entries
+        CREATE UNIQUE INDEX IF NOT EXISTS queue_entries_active_position_unique
+        ON queue_entries (doctor_id, queue_position)
+        WHERE status != 'completed';
 );
 
 -- ─── Refresh Tokens ───────────────────────────────────────────────────────────

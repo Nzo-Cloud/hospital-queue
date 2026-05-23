@@ -25,10 +25,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
-        policy.WithOrigins(allowedOrigin)
+        var origins = new[] { allowedOrigin, "http://127.0.0.1:5000", "http://localhost:5000" };
+        policy.WithOrigins(origins)
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials(); // Required for SignalR + HttpOnly cookies
+              .AllowCredentials();
     });
 });
 
@@ -141,6 +142,7 @@ app.Use(async (context, next) =>
     await next();
 });
 
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseCors("FrontendPolicy");
 app.UseRateLimiter();
