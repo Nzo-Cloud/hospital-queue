@@ -55,8 +55,8 @@ public class TimeSlot
     public Guid Id { get; set; }
     public Guid DoctorId { get; set; }
     public int DayOfWeek { get; set; }
-    public TimeOnly StartTime { get; set; }
-    public TimeOnly EndTime { get; set; }
+    public TimeSpan StartTime { get; set; }
+    public TimeSpan EndTime { get; set; }
     public int MaxAppointments { get; set; }
 }
 

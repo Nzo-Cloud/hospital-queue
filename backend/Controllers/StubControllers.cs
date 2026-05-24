@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
+using Dapper;
+using HospitalQueue.Data;
 
 namespace HospitalQueue.Controllers;
 
@@ -165,14 +167,41 @@ public class QueueController : ControllerBase
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "doctor,admin")]
+[Authorize]
 [EnableRateLimiting("GlobalPolicy")]
 public class DoctorController : ControllerBase
 {
-    // TODO: Phase 2
-    [HttpGet] public IActionResult GetAll() => Ok("Phase 2");
-    [HttpGet("{id}/queue")] public IActionResult GetDoctorQueue(Guid id) => Ok("Phase 2");
-    [HttpPost("{id}/complete")] public IActionResult CompleteConsultation(Guid id) => Ok("Phase 2");
+    private readonly IDbConnectionFactory _db;
+
+    public DoctorController(IDbConnectionFactory db)
+    {
+        _db = db;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        await using var conn = _db.CreateConnection();
+        await conn.OpenAsync();
+
+        var doctors = await conn.QueryAsync<Doctor>(
+            """
+            SELECT d.id, d.profile_id AS "ProfileId", d.specialization, d.is_active AS "IsActive",
+                   p.full_name AS "FullName"
+            FROM doctors d
+            JOIN profiles p ON p.id = d.profile_id
+            WHERE d.is_active = true
+            ORDER BY p.full_name ASC
+            """);
+
+        return Ok(ApiResponse.Ok(doctors.ToList()));
+    }
+
+    [HttpGet("{id}/queue")]
+    public IActionResult GetDoctorQueue(Guid id) => Ok("Phase 7");
+
+    [HttpPost("{id}/complete")]
+    public IActionResult CompleteConsultation(Guid id) => Ok("Phase 7");
 }
 
 // ─── Admin Controller ─────────────────────────────────────────────────────────

@@ -240,17 +240,22 @@ public class AppointmentService : IAppointmentService
 
         var dayOfWeek = (int)date.DayOfWeek;
 
-        var rows = await conn.QueryAsync<TimeSlot>(
+        var rows = await conn.QueryAsync<dynamic>(
             """
-            SELECT 
-                ts.id, ts.doctor_id AS "DoctorId", ts.day_of_week AS "DayOfWeek",
-                ts.start_time AS "StartTime", ts.end_time AS "EndTime",
-                ts.max_appointments AS "MaxAppointments"
-            FROM time_slots ts
-            WHERE ts.doctor_id = @DoctorId AND ts.day_of_week = @DayOfWeek
+            SELECT id, doctor_id, day_of_week, start_time, end_time, max_appointments
+            FROM time_slots
+            WHERE doctor_id = @DoctorId AND day_of_week = @DayOfWeek
             """,
             new { DoctorId = doctorId, DayOfWeek = dayOfWeek });
 
-        return rows.ToList();
+        return rows.Select(row => new TimeSlot
+        {
+            Id = (Guid)row.id,
+            DoctorId = (Guid)row.doctor_id,
+            DayOfWeek = (int)row.day_of_week,
+            StartTime = (TimeSpan)row.start_time,
+            EndTime = (TimeSpan)row.end_time,
+            MaxAppointments = (int)row.max_appointments
+        }).ToList();
     }
 }
