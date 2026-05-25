@@ -212,9 +212,119 @@ public class DoctorController : ControllerBase
 [EnableRateLimiting("GlobalPolicy")]
 public class AdminController : ControllerBase
 {
-    // TODO: Phase 8
-    [HttpGet("analytics")] public IActionResult GetAnalytics() => Ok("Phase 8");
-    [HttpGet("doctors")] public IActionResult GetDoctors() => Ok("Phase 8");
-    [HttpPost("doctors")] public IActionResult CreateDoctor() => Ok("Phase 8");
-    [HttpPut("doctors/{id}")] public IActionResult UpdateDoctor(Guid id) => Ok("Phase 8");
+    private readonly IDbConnectionFactory _db;
+
+    public AdminController(IDbConnectionFactory db)
+    {
+        _db = db;
+    }
+
+    [HttpGet("analytics")]
+    public async Task<IActionResult> GetAnalytics()
+    {
+        await using var conn = _db.CreateConnection();
+        await conn.OpenAsync();
+        var total = await conn.QuerySingleAsync<int>("SELECT COUNT(*) FROM appointments");
+        var done = await conn.QuerySingleAsync<int>("SELECT COUNT(*) FROM appointments WHERE status = 'done'");
+        var noShow = await conn.QuerySingleAsync<int>("SELECT COUNT(*) FROM appointments WHERE status = 'no_show'");
+        return Ok(ApiResponse.Ok(new { total, done, noShow }));
+    }
+
+    [HttpGet("doctors")]
+    public async Task<IActionResult> GetDoctors()
+    {
+        await using var conn = _db.CreateConnection();
+        await conn.OpenAsync();
+        var doctors = await conn.QueryAsync<Doctor>(
+            """
+            SELECT d.id, d.profile_id AS "ProfileId", d.specialization, d.is_active AS "IsActive",
+                   p.full_name AS "FullName"
+            FROM doctors d
+            JOIN profiles p ON p.id = d.profile_id
+            ORDER BY p.full_name ASC
+            """);
+        return Ok(ApiResponse.Ok(doctors.ToList()));
+    }
+
+    [HttpPost("doctors")]
+    public async Task<IActionResult> CreateDoctor([FromBody] CreateDoctorRequest request)
+    {
+        await using var conn = _db.CreateConnection();
+        await conn.OpenAsync();
+        var id = await conn.QuerySingleAsync<Guid>(
+            """
+            INSERT INTO doctors (profile_id, specialization, is_active)
+            VALUES (@ProfileId, @Specialization, true)
+            RETURNING id
+            """,
+            new { request.ProfileId, request.Specialization });
+        return Ok(ApiResponse.Ok(new { id }));
+    }
+
+    [HttpPut("doctors/{id}")]
+    public async Task<IActionResult> UpdateDoctor(Guid id, [FromBody] UpdateDoctorRequest request)
+    {
+        await using var conn = _db.CreateConnection();
+        await conn.OpenAsync();
+        await conn.ExecuteAsync(
+            "UPDATE doctors SET is_active = @IsActive WHERE id = @Id",
+            new { request.IsActive, Id = id });
+        return Ok(ApiResponse.Ok<object?>(null, "Doctor updated."));
+    }
+
+    [HttpGet("slots")]
+    public async Task<IActionResult> GetSlots([FromQuery] Guid doctorId)
+    {
+        await using var conn = _db.CreateConnection();
+        await conn.OpenAsync();
+        var rows = await conn.QueryAsync<dynamic>(
+            """
+            SELECT id, doctor_id, day_of_week, start_time, end_time, max_appointments
+            FROM time_slots WHERE doctor_id = @DoctorId ORDER BY day_of_week, start_time
+            """,
+            new { DoctorId = doctorId });
+
+        var slots = rows.Select(row => new TimeSlot
+        {
+            Id = (Guid)row.id,
+            DoctorId = (Guid)row.doctor_id,
+            DayOfWeek = (int)row.day_of_week,
+            StartTime = (TimeSpan)row.start_time,
+            EndTime = (TimeSpan)row.end_time,
+            MaxAppointments = (int)row.max_appointments
+        }).ToList();
+
+        return Ok(ApiResponse.Ok(slots));
+    }
+
+    [HttpPost("slots")]
+    public async Task<IActionResult> CreateSlot([FromBody] CreateSlotRequest request)
+    {
+        await using var conn = _db.CreateConnection();
+        await conn.OpenAsync();
+        var id = await conn.QuerySingleAsync<Guid>(
+            """
+            INSERT INTO time_slots (doctor_id, day_of_week, start_time, end_time, max_appointments)
+            VALUES (@DoctorId, @DayOfWeek, @StartTime, @EndTime, @MaxAppointments)
+            RETURNING id
+            """,
+            new
+            {
+                request.DoctorId,
+                request.DayOfWeek,
+                StartTime = TimeSpan.Parse(request.StartTime),
+                EndTime = TimeSpan.Parse(request.EndTime),
+                request.MaxAppointments
+            });
+        return Ok(ApiResponse.Ok(new { id }));
+    }
+
+    [HttpDelete("slots/{id}")]
+    public async Task<IActionResult> DeleteSlot(Guid id)
+    {
+        await using var conn = _db.CreateConnection();
+        await conn.OpenAsync();
+        await conn.ExecuteAsync("DELETE FROM time_slots WHERE id = @Id", new { Id = id });
+        return Ok(ApiResponse.Ok<object?>(null, "Slot deleted."));
+    }
 }

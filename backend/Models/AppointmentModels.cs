@@ -12,3 +12,13 @@ public record UpdateAppointmentStatusRequest(
 
 public record CheckInRequest(Guid AppointmentId);
 public record AdvanceQueueRequest(Guid DoctorId);
+
+public record CreateDoctorRequest(Guid ProfileId, string Specialization);
+public record UpdateDoctorRequest(bool IsActive);
+public record CreateSlotRequest(
+    Guid DoctorId,
+    int DayOfWeek,
+    string StartTime,
+    string EndTime,
+    int MaxAppointments
+);
