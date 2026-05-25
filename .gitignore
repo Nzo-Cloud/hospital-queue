@@ -31,3 +31,17 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/settings.json
+
+# Test output
+backend.tests/.vs/
+backend.tests/*.user
+
+# macOS
+*.DS_Store
+
+# Python (git-filter-repo)
+__pycache__/
+*.pyc
+
+# SignalR test page (remove before production)
+backend/wwwroot/
