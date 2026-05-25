@@ -3,12 +3,15 @@ WORKDIR /src
 
 COPY *.csproj .
 
-# Override target framework for Render deployment
-RUN sed -i 's/net10.0/net9.0/g' *.csproj
-RUN dotnet restore
+# Patch framework target before restore
+RUN sed -i 's/net10.0/net9.0/g' *.csproj && \
+    dotnet restore
 
 COPY . .
-RUN dotnet publish -c Release -o /app/publish
+
+# Patch again after copy in case any other files reference net10
+RUN sed -i 's/net10.0/net9.0/g' *.csproj && \
+    dotnet publish -c Release -o /app/publish --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
