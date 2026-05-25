@@ -7,6 +7,8 @@ backend/*.user
 backend/.vs/
 backend/appsettings.Development.json
 backend/.env
+backend.tests/bin/
+backend.tests/obj/
 
 # ========================
 # Next.js / Node
