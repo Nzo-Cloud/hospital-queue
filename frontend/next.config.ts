@@ -36,7 +36,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob:",
               "font-src 'self'",
-              "connect-src 'self' ws: wss: http://localhost:5000 http://127.0.0.1:5000",// wss: for SignalR WebSocket
+              "connect-src 'self' ws: wss: http://localhost:5000 http://127.0.0.1:5000 https://hospital-queue-x4ga.onrender.com",
             ].join("; "),
           },
         ],
