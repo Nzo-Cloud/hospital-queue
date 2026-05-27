@@ -2,7 +2,17 @@
 
 A full-stack real-time hospital queue and appointment management system built as a senior-level portfolio project.
 
+**Live Demo:** [hospital-queue-nzo.vercel.app](https://hospital-queue-nzo.vercel.app)
+
 **Built by:** Lorenzo Balitian — [lorenzobalitian.vercel.app](https://lorenzobalitian.vercel.app) | [GitHub: Nzo-Cloud](https://github.com/Nzo-Cloud)
+
+### Test Accounts
+| Role | Email | Password |
+|---|---|---|
+| Admin | admin@hospital.com | Admin123! |
+| Doctor | doctor@hospital.com | Doctor123! |
+| Receptionist | receptionist@hospital.com | Receptionist123! |
+| Patient | patient@hospital.com | Patient123! |
 
 ---
 
@@ -12,13 +22,13 @@ A full-stack real-time hospital queue and appointment management system built as
 |---|---|
 | Backend | ASP.NET Core (C#) — .NET 10 local / .NET 9 on Render |
 | Frontend | Next.js 15 (TypeScript) + Tailwind CSS |
-| Database | Supabase (PostgreSQL + RLS + Auth) |
+| Database | Supabase (PostgreSQL — used as pure DB host) |
+| ORM | Dapper (raw SQL) |
 | Real-time | SignalR (WebSockets) |
-| SMS | Twilio |
-| Email | Resend |
+| Auth | Custom JWT + bcrypt + refresh token rotation |
+| SMS | Twilio (stub) |
+| Testing | xUnit + Moq + Shouldly |
 | Hosting | Render (backend) + Vercel (frontend) |
-| Error tracking | Sentry |
-| Edge protection | Cloudflare |
 
 ---
 
@@ -32,20 +42,16 @@ A full-stack real-time hospital queue and appointment management system built as
 ---
 
 ## Project Structure
-
-```
 hospital-queue/
 ├── backend/          # ASP.NET Core C# API
 ├── frontend/         # Next.js 15 TypeScript app
 └── docs/             # Architecture notes, DB schema
-```
 
 ---
 
 ## Local Development
 
 ### Backend
-
 ```bash
 cd backend
 cp appsettings.example.json appsettings.Development.json
@@ -54,11 +60,10 @@ dotnet run
 ```
 
 ### Frontend
-
 ```bash
 cd frontend
 cp .env.example .env.local
-# Fill in your API URL and Supabase keys
+# Fill in your API URL
 npm install
 npm run dev
 ```
@@ -81,25 +86,23 @@ See `backend/appsettings.example.json` and `frontend/.env.example` for all requi
 ## Security
 
 - JWT + refresh token rotation
-- HttpOnly secure cookies (no localStorage)
+- HttpOnly secure cookies for refresh tokens
 - bcrypt password hashing
-- Supabase Row Level Security
 - Rate limiting on all public endpoints
 - CORS locked to frontend domain
 - HTTP Security Headers (CSP, HSTS, X-Frame-Options)
 - Global exception handler — no raw stack traces exposed
-- Audit log for all sensitive actions
 
 ---
 
 ## Build Phases
 
 - [x] Phase 1 — Backend foundation + auth
-- [ ] Phase 2 — Core services (appointments, queue, SMS)
-- [ ] Phase 3 — SignalR real-time
-- [ ] Phase 4 — Frontend foundation + auth
-- [ ] Phase 5 — Patient portal
-- [ ] Phase 6 — Receptionist dashboard
-- [ ] Phase 7 — Doctor dashboard
-- [ ] Phase 8 — Admin dashboard
-- [ ] Phase 9 — Polish + production deployment
+- [x] Phase 2 — Core services (appointments, queue, SMS)
+- [x] Phase 3 — SignalR real-time
+- [x] Phase 4 — Frontend foundation + auth
+- [x] Phase 5 — Patient portal
+- [x] Phase 6 — Receptionist dashboard
+- [x] Phase 7 — Doctor dashboard
+- [x] Phase 8 — Admin dashboard
+- [x] Phase 9 — Polish + production deployment
