@@ -32,8 +32,8 @@ export function middleware(request: NextRequest) {
 
   // Check role-based access
   const allowedPrefix = ROLE_ROUTES[userRole];
-  if (allowedPrefix && !pathname.startsWith(allowedPrefix)) {
-    // Authenticated but wrong role — redirect to their dashboard
+  const basePrefix = allowedPrefix?.split("/").slice(0, 2).join("/");
+  if (basePrefix && !pathname.startsWith(basePrefix)) {
     return NextResponse.redirect(new URL(allowedPrefix, request.url));
   }
 
