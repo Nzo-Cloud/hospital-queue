@@ -29,46 +29,12 @@ export default function WalkIn() {
     setLoading(true);
 
     try {
-      // Step 1 — register a temporary patient account
-      const registerRes = await api.post("/auth/register", {
-        email: patientEmail,
-        password: Math.random().toString(36).slice(-10) + "A1!", // random password
-        fullName: patientName,
-        phone: patientPhone,
-        role: "patient",
+      await api.post("/appointment/walkin", {
+        patientEmail,
+        patientFullName: patientName,
+        patientPhone,
+        doctorId: selectedDoctor,
       });
-
-      const patientToken = registerRes.data.data.accessToken;
-      const patientId = registerRes.data.data.userId;
-
-      // Step 2 — get available slots for today
-      const today = new Date().toISOString().split("T")[0];
-      const slotsRes = await api.get("/appointment/slots", {
-        params: { doctorId: selectedDoctor, date: today },
-      });
-      const slots = slotsRes.data.data ?? [];
-
-      if (slots.length === 0) {
-        setError("No available slots for this doctor today.");
-        setLoading(false);
-        return;
-      }
-
-      // Step 3 — book appointment using patient token
-      const apptRes = await api.post(
-        "/appointment",
-        {
-          doctorId: selectedDoctor,
-          slotId: slots[0].id,
-          appointmentDate: today,
-        },
-        { headers: { Authorization: `Bearer ${patientToken}` } }
-      );
-
-      const appointmentId = apptRes.data.data.id;
-
-      // Step 4 — check in immediately
-      await api.post("/queue/check-in", { appointmentId });
 
       setSuccess(true);
       setTimeout(() => router.push("/receptionist/dashboard"), 1500);

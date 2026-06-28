@@ -18,10 +18,15 @@ namespace HospitalQueue.Controllers;
 public class AppointmentController : ControllerBase
 {
     private readonly IAppointmentService _appointmentService;
+    private readonly IQueueService _queueService;
+    private readonly IDbConnectionFactory _db;
 
-    public AppointmentController(IAppointmentService appointmentService)
+
+    public AppointmentController(IAppointmentService appointmentService, IQueueService queueService, IDbConnectionFactory db)
     {
         _appointmentService = appointmentService;
+        _queueService = queueService;
+        _db = db;
     }
 
     // GET /api/appointment — patients see their own, receptionists/doctors see today's
@@ -56,6 +61,53 @@ public class AppointmentController : ControllerBase
     {
         var slots = await _appointmentService.GetAvailableSlotsAsync(doctorId, date);
         return Ok(ApiResponse.Ok(slots));
+    }
+
+    // POST /api/appointment/walkin — receptionist registers walk-in patient
+    [HttpPost("walkin")]
+    [Authorize(Roles = "receptionist")]
+    public async Task<IActionResult> WalkIn([FromBody] WalkInRequest request)
+    {
+        var receptionistId = GetUserId();
+
+        await using var conn = _db.CreateConnection();
+        await conn.OpenAsync();
+
+        // Step 1 — find or create patient
+        var patientId = await conn.QueryFirstOrDefaultAsync<Guid?>(
+            "SELECT id FROM profiles WHERE email = @Email",
+            new { Email = request.PatientEmail });
+
+        if (!patientId.HasValue)
+        {
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(
+                Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)),
+                workFactor: 12);
+
+            patientId = await conn.QuerySingleAsync<Guid>(
+                """
+                INSERT INTO profiles (full_name, email, phone, role, password_hash)
+                VALUES (@FullName, @Email, @Phone, 'patient', @PasswordHash)
+                RETURNING id
+                """,
+                new { FullName = request.PatientFullName, Email = request.PatientEmail, Phone = request.PatientPhone, PasswordHash = passwordHash });
+        }
+
+        // Step 2 — get today's slot
+        var today = DateTime.UtcNow.Date;
+        var slots = await _appointmentService.GetAvailableSlotsAsync(request.DoctorId, today);
+
+        if (slots.Count == 0)
+            return BadRequest(ApiResponse.Fail("No available slots for this doctor today."));
+
+        // Step 3 — book appointment
+        var apptRequest = new CreateAppointmentRequest(request.DoctorId, slots[0].Id, today);
+        var appointment = await _appointmentService.CreateAsync(apptRequest, patientId.Value);
+
+        // Step 4 — check in immediately
+        await _queueService.CheckInAsync(appointment.Id, receptionistId);
+
+        return Ok(ApiResponse.Ok(new { appointment.Id }, "Walk-in patient added to queue."));
     }
 
     // POST /api/appointment — patients book appointments

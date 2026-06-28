@@ -139,3 +139,12 @@ public static class ApiResponse
     public static ApiResponse<object> Fail(string message)
         => new(false, message, null);
 }
+
+// ─── Walk-in ──────────────────────────────────────────────────────────────────
+
+public record WalkInRequest(
+    string PatientEmail,
+    string PatientFullName,
+    string PatientPhone,
+    Guid DoctorId
+);
