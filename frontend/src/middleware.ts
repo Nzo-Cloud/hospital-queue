@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 // Role → allowed path prefixes
 const ROLE_ROUTES: Record<string, string> = {
-  patient: "/patient",
-  receptionist: "/receptionist",
-  doctor: "/doctor",
-  admin: "/admin",
+  patient: "/patient/dashboard",
+  receptionist: "/receptionist/dashboard",
+  doctor: "/doctor/dashboard",
+  admin: "/admin/dashboard",
 };
 
 const PUBLIC_PATHS = ["/auth/login", "/auth/register"];
