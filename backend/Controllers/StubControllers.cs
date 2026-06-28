@@ -43,7 +43,8 @@ public class AppointmentController : ControllerBase
         }
 
         // Receptionist and admin see all of today's appointments
-        var todayAppointments = await _appointmentService.GetAllTodayAsync(DateTime.UtcNow);
+        var philippineTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Asia/Manila").Date;
+        var todayAppointments = await _appointmentService.GetAllTodayAsync(philippineTime);
         return Ok(ApiResponse.Ok(todayAppointments));
     }
 
@@ -94,7 +95,7 @@ public class AppointmentController : ControllerBase
         }
 
         // Step 2 — get today's slot
-        var today = DateTime.UtcNow.Date;
+        var today = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Asia/Manila").Date;
         var slots = await _appointmentService.GetAvailableSlotsAsync(request.DoctorId, today);
 
         if (slots.Count == 0)

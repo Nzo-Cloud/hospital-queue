@@ -21,7 +21,12 @@ export default function QueueStatus() {
       .get("/appointment")
       .then((res) => {
         const all: Appointment[] = res.data.data ?? [];
-        const arrived = all.filter((a) => a.status === "arrived" || a.status === "in_consultation");
+        const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
+        const arrived = all.filter(
+          (a) =>
+            (a.status === "arrived" || a.status === "in_consultation") &&
+            a.appointmentDate.toString().startsWith(today)
+        );
         setAppointments(arrived);
         if (arrived.length === 1) setSelectedAppointment(arrived[0]);
       })
@@ -58,11 +63,21 @@ export default function QueueStatus() {
       .build();
 
     connection.on("QueueUpdated", (entry: QueueEntry) => {
-      // Only update if this event is for our appointment
       if (entry.appointmentId === selectedAppointment.id) {
         setQueueEntry(entry);
         setPosition(entry.queuePosition);
       }
+      // Re-fetch appointments so status reflects latest changes
+      api.get("/appointment").then((res) => {
+        const all: Appointment[] = res.data.data ?? [];
+        const todayDate = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
+        const arrived = all.filter(
+          (a) =>
+            (a.status === "arrived" || a.status === "in_consultation") &&
+            a.appointmentDate.toString().startsWith(todayDate)
+        );
+        setAppointments(arrived);
+      });
     });
 
     connection.onreconnecting(() => setConnected(false));
