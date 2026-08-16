@@ -149,12 +149,12 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Health check endpoint
+app.MapGet("/health", () => Results.Ok("healthy"));
+
 app.MapControllers();
 
 // SignalR Hub
 app.MapHub<QueueHub>("/hubs/queue");
-
-// Health check endpoint
-app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 
 app.Run();
