@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { login, getDashboardPath } from "@/lib/auth";
 import type { UserRole } from "@/lib/auth";
+import DemoAccounts from "@/components/DemoAccounts";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -58,7 +59,7 @@ export default function LoginPage() {
             flexShrink: 0,
           }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="white" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </div>
           <div>
@@ -195,6 +196,17 @@ export default function LoginPage() {
             </button>
 
           </form>
+
+          <DemoAccounts
+            accounts={[
+              { role: "Admin", email: "admin@hospital.com", password: "Admin123!" },
+              { role: "Doctor", email: "doctor@hospital.com", password: "Doctor123!" },
+              { role: "Patient", email: "patient@hospital.com", password: "Patient123!" },
+              { role: "Receptionist", email: "receptionist@hospital.com", password: "Receptionist123!" },
+            ]}
+            accentColor="#1a5c9a"
+            headerBg="#1a3a5c"
+          />
         </div>
 
         {/* Footer */}
